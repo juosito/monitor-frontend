@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(import.meta.env.VITE_API_URL + "/login", {
-        username,
-        password
+      await axios.post(import.meta.env.VITE_API_URL + "/login", {
+        username, password
       });
-      alert("Login OK. Bienvenido " + username);
+      navigate("/dashboard");
     } catch (err) {
       setError("Credenciales inválidas o servidor inactivo.");
     }
