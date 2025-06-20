@@ -1,41 +1,44 @@
-import { useEffect, useState } from "react";
-import "./Dashboard.css";              // opcional, puro estilo
+import { useEffect, useState } from 'react'
 
-export default function Dashboard() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+function Dashboard() {
+  const [shipments, setShipments] = useState([])
 
   useEffect(() => {
-    fetch(import.meta.env.VITE_BACKEND_URL + "/shipments")
-      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-      .then(setRows)
-      .catch(e => setErr(e.toString()))
-      .finally(() => setLoading(false));
-  }, []);
+    fetch('https://monitor-backend-nxug.vercel.app/shipments')
+      .then(res => res.json())
+      .then(data => setShipments(data))
+  }, [])
 
-  if (loading)  return <p>Cargando pedidos…</p>;
-  if (err)      return <p style={{color:"red"}}>Error: {err}</p>;
-  if (!rows.length) return <p>No hay envíos FLEX pendientes</p>;
+  const handleMark = (id) => {
+    fetch(`https://monitor-backend-nxug.vercel.app/mark-delivered/${id}`, {
+      method: 'POST'
+    }).then(() => {
+      setShipments(prev => prev.filter(s => s.id !== id))
+    })
+  }
 
   return (
-    <>
+    <div style={{ padding: 20 }}>
       <h1>Pedidos FLEX</h1>
-      <table>
+      <table border="1">
         <thead>
-          <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Cuenta</th></tr>
+          <tr>
+            <th>ID</th><th>Nombre</th><th>Teléfono</th><th>Acción</th>
+          </tr>
         </thead>
         <tbody>
-          {rows.map(s => (
+          {shipments.map(s => (
             <tr key={s.id}>
               <td>{s.id}</td>
-              <td>{s.receiver?.nickname ?? "—"}</td>
-              <td>{s.receiver?.phone?.number ?? "—"}</td>
-              <td>{s.account}</td>
+              <td>{s.name}</td>
+              <td>{s.phone}</td>
+              <td><button onClick={() => handleMark(s.id)}>Marcar como entregado</button></td>
             </tr>
           ))}
         </tbody>
       </table>
-    </>
-  );
+    </div>
+  )
 }
+
+export default Dashboard
