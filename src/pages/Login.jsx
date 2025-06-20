@@ -1,41 +1,46 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+function Login() {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(import.meta.env.VITE_API_URL + "/login", {
-        username, password
-      });
-      navigate("/dashboard");
-    } catch (err) {
-      setError("Credenciales inválidas o servidor inactivo.");
+  const handleLogin = async () => {
+    const response = await fetch('https://monitor-backend-nxug.vercel.app/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+
+    const data = await response.json()
+
+    if (data.message === "Login successful") {
+      navigate('/dashboard')
+    } else {
+      setError('Credenciales inválidas o servidor inactivo.')
     }
-  };
+  }
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', height: '100vh', fontFamily: 'Arial'
-    }}>
+    <div style={{ textAlign: 'center', marginTop: '10%' }}>
       <h1>Login</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: 200 }}>
-        <input type="text" placeholder="Username" value={username}
-          onChange={(e) => setUsername(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password}
-          onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit" style={{ marginTop: 10 }}>Login</button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+      <input
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Usuario"
+      /><br />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Contraseña"
+      /><br />
+      <button onClick={handleLogin}>Login</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
