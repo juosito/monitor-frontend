@@ -1,51 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import "./Dashboard.css";              // opcional, puro estilo
 
-function Dashboard() {
-  const [shipments, setShipments] = useState([]);
+export default function Dashboard() {
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
   useEffect(() => {
-    fetch('https://monitor-backend-nxug.vercel.app/shipments')
-      .then(res => res.json())
-      .then(data => {
-        setShipments(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error al cargar los envíos:', error);
-        setLoading(false);
-      });
+    fetch(import.meta.env.VITE_BACKEND_URL + "/shipments")
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(setRows)
+      .catch(e => setErr(e.toString()))
+      .finally(() => setLoading(false));
   }, []);
 
+  if (loading)  return <p>Cargando pedidos…</p>;
+  if (err)      return <p style={{color:"red"}}>Error: {err}</p>;
+  if (!rows.length) return <p>No hay envíos FLEX pendientes</p>;
+
   return (
-    <div style={{ padding: '2rem' }}>
+    <>
       <h1>Pedidos FLEX</h1>
-      {loading ? (
-        <p>Cargando pedidos...</p>
-      ) : (
-        <table border="1" cellPadding="10">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Teléfono</th>
-              <th>Acción</th>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Cuenta</th></tr>
+        </thead>
+        <tbody>
+          {rows.map(s => (
+            <tr key={s.id}>
+              <td>{s.id}</td>
+              <td>{s.receiver?.nickname ?? "—"}</td>
+              <td>{s.receiver?.phone?.number ?? "—"}</td>
+              <td>{s.account}</td>
             </tr>
-          </thead>
-          <tbody>
-            {shipments.map((s) => (
-              <tr key={s.id}>
-                <td>{s.id}</td>
-                <td>{s.name}</td>
-                <td>{s.phone}</td>
-                <td><button>Marcar como entregado</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
-
-export default Dashboard;
